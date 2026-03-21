@@ -1,0 +1,16 @@
+{
+  "name": "vinkallaren",
+  "version": "1.0.0",
+  "description": "Din personliga AI-vinsommelier",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
