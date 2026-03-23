@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vinkällaren</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0a08;
+    --surface: #1a1410;
+    --surface2: #231c16;
+    --border: #3d2e22;
+    --wine: #8b1a2e;
+    --wine-light: #c4314f;
+    --gold: #c9a84c;
+    --gold-light: #e8c96d;
+    --cream: #f5ede0;
+    --muted: #8a7568;
+    --text: #e8ddd0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Cormorant Garamond', serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.5;
+  }
+
+  header {
+    text-align: center;
+    padding: 3rem 1rem 2rem;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .logo-ornament {
+    font-size: 2rem;
+    color: var(--gold);
+    letter-spacing: 0.3em;
+    margin-bottom: 0.5rem;
+    opacity: 0.6;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 6vw, 4rem);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    background: linear-gradient(135deg, var(--cream) 0%, var(--gold-light) 50%, var(--cream) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .tagline {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 1.1rem;
+    margin-top: 0.4rem;
+    letter-spacing: 0.05em;
+  }
+
+  nav {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    padding: 0 1rem;
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .nav-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 1.2rem 2rem;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.3s;
+    white-space: nowrap;
+  }
+
+  .nav-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 2px;
+    background: var(--gold);
+    transition: width 0.3s;
+  }
+
+  .nav-btn.active {
+    color: var(--gold-light);
+  }
+
+  .nav-btn.active::after {
+    width: 60%;
+  }
+
+  .page { display: none; padding: 2rem 1rem; max-width: 900px; margin: 0 auto; }
+  .page.active { display: block; animation: fadeIn 0.4s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* SCAN PAGE */
+  .scan-zone {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 4px;
+    padding: 3rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 2rem;
+  }
+
+  .scan-zone::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .wine-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 0 20px rgba(139,26,46,0.5));
+  }
+
+  .scan-zone h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: var(--cream);
+    margin-bottom: 0.5rem;
+  }
+
+  .scan-zone p {
+    color: var(--muted);
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--wine) 0%, var(--wine-light) 100%);
+    color: var(--cream);
+    border: none;
+    padding: 0.9rem 2.5rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.5s;
+  }
+
+  .btn-primary:hover::before { left: 100%; }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(139,26,46,0.4); }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    padding: 0.7rem 2rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.3s;
+    margin-left: 1rem;
+  }
+
+  .btn-secondary:hover { background: rgba(201,168,76,0.1); }
+
+  #cameraInput, #fileInput { display: none; }
+
+  #preview {
+    display: none;
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 4px;
+    margin: 1.5rem auto;
+    border: 1px solid var(--border);
+    display: none;
+  }
+
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 2px solid var(--border);
+    border-top-color: var(--wine-light);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading p {
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  /* RESULT */
+  .result-card {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .result-header {
+    background: linear-gradient(135deg, var(--wine) 0%, #5c0f1e 100%);
+    padding: 1.5rem 2rem;
+    position: relative;
+  }
+
+  .result-header::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  }
+
+  .result-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: var(--cream);
+  }
+
+  .result-header .wine-type {
+    color: rgba(245,237,224,0.6);
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-top: 0.2rem;
+  }
+
+  .result-body { padding: 1.5rem 2rem; }
+
+  .drink-window {
+    text-align: center;
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: var(--surface2);
+    border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+
+  .drink-window-label {
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .drink-window-dates {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--gold-light);
+    margin: 0.3rem 0;
+  }
+
+  .drink-window-status {
+    font-size: 0.95rem;
+    color: var(--text);
+    font-style: italic;
+  }
+
+  .result-details { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+
+  .detail-item label {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+  }
+
+  .detail-item span {
+    font-size: 1.1rem;
+    color: var(--cream);
+  }
+
+  .tasting-notes {
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+    font-style: italic;
+    color: var(--text);
+    line-height: 1.8;
+    font-size: 1.05rem;
+  }
+
+  .save-btn-wrap {
+    text-align: center;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  /* CELLAR PAGE */
+  .cellar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .cellar-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    font-weight: 400;
+    color: var(--cream);
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    flex: 1;
+    min-width: 120px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1rem 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--wine), var(--gold));
+  }
+
+  .stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    color: var(--gold-light);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+
+  .filter-bar {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.4rem 1rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .filter-btn.active, .filter-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  .wine-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+
+  .wine-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    transition: all 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .wine-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  }
+
+  .wine-card-img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    display: block;
+    background: var(--surface2);
+  }
+
+  .wine-card-img-placeholder {
+    width: 100%;
+    height: 140px;
+    background: linear-gradient(135deg, var(--surface2), var(--wine) 150%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    opacity: 0.5;
+  }
+
+  .wine-card-body { padding: 1rem 1.2rem; }
+
+  .wine-card-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--cream);
+    margin-bottom: 0.2rem;
+  }
+
+  .wine-card-region {
+    font-size: 0.85rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.8rem;
+  }
+
+  .wine-card-window {
+    font-size: 0.9rem;
+    color: var(--text);
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-top: 0.5rem;
+  }
+
+  .badge-peak { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid rgba(201,168,76,0.3); }
+  .badge-wait { background: rgba(139,26,46,0.15); color: #e07070; border: 1px solid rgba(139,26,46,0.3); }
+  .badge-drink { background: rgba(50,180,100,0.15); color: #7ec89a; border: 1px solid rgba(50,180,100,0.3); }
+  .badge-late { background: rgba(100,100,100,0.2); color: var(--muted); border: 1px solid var(--border); }
+
+  .delete-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(13,10,8,0.7);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 28px;
+    height: 28px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    opacity: 0;
+  }
+
+  .wine-card:hover .delete-btn { opacity: 1; }
+  .delete-btn:hover { color: #e07070; border-color: #e07070; }
+
+  .empty-cellar {
+    text-align: center;
+    padding: 4rem 2rem;
+    color: var(--muted);
+  }
+
+  .empty-cellar .icon { font-size: 4rem; margin-bottom: 1rem; opacity: 0.3; }
+
+  .empty-cellar p { font-style: italic; font-size: 1.1rem; line-height: 1.8; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,10,8,0.9);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: fadeIn 0.3s ease;
+    position: relative;
+  }
+
+  .modal::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--wine), var(--gold), var(--wine));
+  }
+
+  .modal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .modal-header h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 400;
+    color: var(--cream);
+  }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.2rem 0.5rem;
+    transition: color 0.2s;
+  }
+
+  .close-btn:hover { color: var(--cream); }
+
+  .modal-body { padding: 1.5rem 2rem; }
+
+  .modal-img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+  }
+
+  /* TIMELINE */
+  .timeline-bar {
+    position: relative;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    margin: 0.8rem 0 0.3rem;
+    overflow: hidden;
+  }
+
+  .timeline-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: linear-gradient(90deg, var(--wine), var(--gold));
+    border-radius: 3px;
+    transition: width 1s ease;
+  }
+
+  .timeline-marker {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    background: var(--gold);
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+  }
+
+  /* PHOTO SLOTS */
+  .photo-slots {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0 0;
+  }
+  .photo-slot {
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: var(--surface2);
+  }
+  .photo-slot:hover { border-color: var(--gold); box-shadow: 0 4px 20px rgba(201,168,76,0.1); }
+  .photo-slot.has-photo { border-style: solid; border-color: var(--gold); }
+  .slot-preview { width: 100%; height: 140px; position: relative; overflow: hidden; }
+  .slot-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.3rem; }
+  .slot-icon { font-size: 1.8rem; opacity: 0.5; }
+  .slot-label { font-family: 'Playfair Display', serif; font-size: 0.95rem; color: var(--cream); }
+  .slot-hint { font-size: 0.75rem; color: var(--muted); font-style: italic; }
+  .slot-img { width: 100%; height: 140px; object-fit: cover; display: block; }
+  .slot-status { padding: 0.4rem 0.8rem; font-size: 0.8rem; color: var(--muted); text-align: center; border-top: 1px solid var(--border); font-style: italic; }
+  .photo-slot.has-photo .slot-status { color: var(--gold); }
+  @media (max-width: 400px) {
+    .photo-slots { grid-template-columns: 1fr; }
+    .slot-preview { height: 120px; }
+  }
+
+  .error-msg {
+    background: rgba(139,26,46,0.15);
+    border: 1px solid rgba(139,26,46,0.4);
+    color: #e07070;
+    padding: 1rem 1.5rem;
+    border-radius: 4px;
+    text-align: center;
+    margin-top: 1rem;
+    display: none;
+  }
+
+  @media (max-width: 600px) {
+    .result-details { grid-template-columns: 1fr; }
+    .btn-secondary { margin-left: 0; margin-top: 0.8rem; display: block; width: 100%; text-align: center; }
+    .btn-primary { width: 100%; }
+    .stats-bar { flex-direction: column; }
+    .wine-grid { grid-template-columns: 1fr; }
+    .scan-zone { padding: 2rem 1.2rem; }
+    .scan-zone h2 { font-size: 1.3rem; }
+    .free-uses-bar { flex-wrap: wrap; gap: 0.5rem; font-size: 0.85rem; }
+    .paywall-box { padding: 0 0.5rem; }
+    .paywall-pricing-grid { grid-template-columns: 1fr !important; }
+    .paywall-box h2 { font-size: 1.8rem; }
+    .modal { margin: 0.5rem; max-height: 95vh; }
+    .modal-body { padding: 1rem 1.2rem; }
+    .modal-header { padding: 1rem 1.2rem; }
+    nav { justify-content: flex-start; }
+    .nav-btn { padding: 1rem 1.2rem; font-size: 0.9rem; }
+    header { padding: 2rem 1rem 1.5rem; }
+    h1 { font-size: 2.2rem; }
+    .page { padding: 1.2rem 0.8rem; }
+    .cellar-header { flex-direction: column; align-items: flex-start; }
+    .filter-bar { gap: 0.4rem; }
+    .filter-btn { padding: 0.4rem 0.7rem; font-size: 0.8rem; }
+    .pricing-grid { grid-template-columns: 1fr; }
+  }
+
+  /* PAYWALL OVERLAY */
+  .paywall-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,10,8,0.97);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: fadeIn 0.4s ease;
+  }
+  .paywall-overlay.open { display: flex; }
+
+  .paywall-box {
+    max-width: 820px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .paywall-ornament {
+    font-size: 1.5rem;
+    color: var(--gold);
+    letter-spacing: 0.4em;
+    opacity: 0.5;
+    margin-bottom: 1rem;
+  }
+
+  .paywall-box h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 400;
+    background: linear-gradient(135deg, var(--cream), var(--gold-light), var(--cream));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.6rem;
+  }
+
+  .paywall-box .sub {
+    color: var(--muted);
+    font-style: italic;
+    font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+    line-height: 1.7;
+  }
+
+  .trial-badge {
+    display: inline-block;
+    background: rgba(201,168,76,0.12);
+    border: 1px solid rgba(201,168,76,0.35);
+    color: var(--gold-light);
+    font-size: 0.85rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.35rem 1.2rem;
+    border-radius: 20px;
+    margin-bottom: 2.5rem;
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .price-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem 1.5rem;
+    position: relative;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .price-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-3px);
+    box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+  }
+
+  .price-card.featured {
+    border-color: var(--gold);
+    background: linear-gradient(160deg, var(--surface) 0%, rgba(139,26,46,0.15) 100%);
+  }
+
+  .price-card.featured::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--wine), var(--gold));
+  }
+
+  .popular-tag {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(90deg, var(--wine), var(--wine-light));
+    color: var(--cream);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.25rem 1rem;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+
+  .price-plan {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--muted);
+    margin-bottom: 0.8rem;
+  }
+
+  .price-amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    color: var(--cream);
+    line-height: 1;
+  }
+
+  .price-amount sup {
+    font-size: 1.1rem;
+    vertical-align: super;
+    color: var(--gold);
+  }
+
+  .price-period {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0.3rem 0 1.2rem;
+    font-style: italic;
+  }
+
+  .price-save {
+    font-size: 0.78rem;
+    color: var(--gold);
+    letter-spacing: 0.08em;
+    margin-bottom: 1.2rem;
+    min-height: 1.2em;
+  }
+
+  .price-features {
+    list-style: none;
+    text-align: left;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+    line-height: 2;
+    color: var(--text);
+  }
+
+  .price-features li::before {
+    content: '✦ ';
+    color: var(--gold);
+    font-size: 0.6rem;
+    vertical-align: middle;
+  }
+
+  .btn-plan {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 0.8rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.3s;
+  }
+
+  .btn-plan:hover, .price-card.featured .btn-plan {
+    background: linear-gradient(135deg, var(--wine), var(--wine-light));
+    border-color: transparent;
+    color: var(--cream);
+  }
+
+  .paywall-footer {
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-style: italic;
+    line-height: 1.8;
+  }
+
+  .paywall-footer a {
+    color: var(--gold);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  /* FREE USES COUNTER */
+  .free-uses-bar {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.8rem 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: var(--muted);
+    gap: 1rem;
+  }
+
+  .free-uses-bar span { white-space: nowrap; }
+
+  .uses-dots { display: flex; gap: 6px; }
+  .use-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+  }
+  .use-dot.used { background: var(--wine-light); }
+
+  .upgrade-link {
+    color: var(--gold);
+    cursor: pointer;
+    text-decoration: underline;
+    font-style: italic;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-ornament">✦ ✦ ✦</div>
+  <h1>Vinkällaren</h1>
+  <p class="tagline">Fotografera. Analysera. Njut vid rätt tillfälle.</p>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="showPage('scan')">Analysera Vin</button>
+  <button class="nav-btn" onclick="showPage('cellar')">Min Källare</button>
+</nav>
+
+<!-- PAYWALL OVERLAY -->
+<div class="paywall-overlay" id="paywallOverlay">
+  <div class="paywall-box">
+    <div class="paywall-ornament">✦ ✦ ✦</div>
+    <h2>Välj ditt medlemskap</h2>
+    <p class="sub">Välj det medlemskap som passar dig bäst<br>och få tillgång till obegränsade analyser.</p>
+
+    <div class="pricing-grid">
+      <!-- Monthly -->
+      <div class="price-card" onclick="selectPlan('monthly')">
+        <div class="price-plan">Månadsvis</div>
+        <div class="price-amount"><sup>kr</sup>49</div>
+        <div class="price-period">per månad</div>
+        <div class="price-save">&nbsp;</div>
+        <ul class="price-features">
+          <li>Obegränsade analyser</li>
+          <li>Spara upp till 50 viner</li>
+          <li>Drickningsfönster</li>
+          <li>Smaknoter & tips</li>
+        </ul>
+        <button class="btn-plan">Välj månadsvis</button>
+      </div>
+
+      <!-- Yearly (featured) -->
+      <div class="price-card featured" onclick="selectPlan('yearly')">
+        <div class="popular-tag">Mest populär</div>
+        <div class="price-plan">Årsvis</div>
+        <div class="price-amount"><sup>kr</sup>29</div>
+        <div class="price-period">per månad, faktureras årsvis</div>
+        <div class="price-save">Spara 41% — kr 348/år</div>
+        <ul class="price-features">
+          <li>Obegränsade analyser</li>
+          <li>Obegränsad källare</li>
+          <li>Drickningsfönster</li>
+          <li>Smaknoter & tips</li>
+          <li>Påminnelser via e-post</li>
+        </ul>
+        <button class="btn-plan">Välj årsvis</button>
+      </div>
+
+      <!-- Lifetime -->
+      <div class="price-card" onclick="selectPlan('lifetime')">
+        <div class="price-plan">Livstid</div>
+        <div class="price-amount"><sup>kr</sup>599</div>
+        <div class="price-period">en gång, för alltid</div>
+        <div class="price-save">Bäst för samlaren</div>
+        <ul class="price-features">
+          <li>Allt i årsvis</li>
+          <li>Prioriterad support</li>
+          <li>Alla framtida funktioner</li>
+          <li>Betala aldrig igen</li>
+        </ul>
+        <button class="btn-plan">Välj livstid</button>
+      </div>
+    </div>
+
+    <p class="paywall-footer">
+      <a onclick="startFreeTrial()">Fortsätt till betalning →</a>
+    </p>
+  </div>
+</div>
+
+<div id="scanPage" class="page active">
+  <div class="free-uses-bar" id="freeUsesBar">
+    <span>Gratis analyser kvar:</span>
+    <div class="uses-dots" id="usesDots"></div>
+    <span class="upgrade-link" onclick="openPaywall()">Uppgradera för obegränsat →</span>
+  </div>
+
+  <div class="scan-zone">
+    <div class="wine-icon">🍷</div>
+    <h2>Fotografera din flaska</h2>
+    <p>Ta ett foto av fram- och baksidan för bästa analys.<br>Framsidan räcker också om du inte har baksidan.</p>
+
+    <div class="photo-slots">
+      <!-- Framsida -->
+      <div class="photo-slot" id="slotFront" onclick="triggerPhoto('front')">
+        <div class="slot-preview" id="previewFront">
+          <div class="slot-placeholder">
+            <span class="slot-icon">📷</span>
+            <span class="slot-label">Framsida</span>
+            <span class="slot-hint">Etikett & producent</span>
+          </div>
+        </div>
+        <div class="slot-status" id="statusFront">Ej tillagd</div>
+      </div>
+
+      <!-- Baksida -->
+      <div class="photo-slot" id="slotBack" onclick="triggerPhoto('back')">
+        <div class="slot-preview" id="previewBack">
+          <div class="slot-placeholder">
+            <span class="slot-icon">📷</span>
+            <span class="slot-label">Baksida</span>
+            <span class="slot-hint">Valfri men rekommenderas</span>
+          </div>
+        </div>
+        <div class="slot-status" id="statusBack">Ej tillagd</div>
+      </div>
+    </div>
+
+    <input type="file" id="inputFront" accept="image/*" capture="environment" onchange="handleSlot(this,'front')">
+    <input type="file" id="inputBack" accept="image/*" capture="environment" onchange="handleSlot(this,'back')">
+
+    <button class="btn-primary" id="analyzeBtn" onclick="startAnalysis()" disabled style="margin-top:1.5rem;opacity:0.4">
+      🔍 Analysera vin
+    </button>
+    <button class="btn-secondary" id="resetBtn" onclick="resetPhotos()" style="display:none;margin-top:0.8rem">
+      Börja om
+    </button>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="loading-spinner"></div>
+    <p id="loadingText">Studerar etiketten och analyserar vinet…</p>
+  </div>
+
+  <div class="error-msg" id="errorMsg"></div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-header">
+      <h3 id="resName">—</h3>
+      <div class="wine-type" id="resType">—</div>
+    </div>
+    <div class="result-body">
+      <div class="drink-window">
+        <div class="drink-window-label">Drickningsfönster</div>
+        <div class="drink-window-dates" id="resDrinkWindow">—</div>
+        <div class="drink-window-status" id="resStatus">—</div>
+      </div>
+      <div class="result-details">
+        <div class="detail-item">
+          <label>Druvsort</label>
+          <span id="resGrape">—</span>
+        </div>
+        <div class="detail-item">
+          <label>Årgång</label>
+          <span id="resVintage">—</span>
+        </div>
+        <div class="detail-item">
+          <label>Region</label>
+          <span id="resRegion">—</span>
+        </div>
+        <div class="detail-item">
+          <label>Alkohol</label>
+          <span id="resAlcohol">—</span>
+        </div>
+        <div class="detail-item">
+          <label>Lagringspotential</label>
+          <span id=resAging>—</span>
+        </div>
+        <div class="detail-item">
+          <label>Pris-kategori</label>
+          <span id="resPrice">—</span>
+        </div>
+      </div>
+      <div class="tasting-notes" id="resTasting">—</div>
+      <div class="save-btn-wrap">
+        <button class="btn-primary" onclick="saveTocellar()">💾 Spara till min källare</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="cellarPage" class="page">
+  <div class="cellar-header">
+    <h2>Min Vinkällare</h2>
+  </div>
+
+  <div class="stats-bar" id="statsBar">
+    <div class="stat">
+      <div class="stat-number" id="statTotal">0</div>
+      <div class="stat-label">Flaskor</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number" id="statDrinkNow">0</div>
+      <div class="stat-label">Drick nu</div>
+    </div>
+    <div class="stat">
+      <div class="stat-number" id="statPeak">0</div>
+      <div class="stat-label">Toppform</div>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterCellar('all', this)">Alla</button>
+    <button class="filter-btn" onclick="filterCellar('drink', this)">Drick nu</button>
+    <button class="filter-btn" onclick="filterCellar('peak', this)">Toppform</button>
+    <button class="filter-btn" onclick="filterCellar('wait', this)">Vänta</button>
+    <button class="filter-btn" onclick="filterCellar('late', this)">Sent ute</button>
+  </div>
+
+  <div class="wine-grid" id="wineGrid"></div>
+
+  <div class="empty-cellar" id="emptyCellar">
+    <div class="icon">🍾</div>
+    <p>Din källare är ännu tom.<br>Fotografera en flaska för att börja samla.</p>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalName">—</h3>
+      <button class="close-btn" onclick="closeModalBtn()">✕</button>
+    </div>
+    <div class="modal-body">
+      <img id="modalImg" class="modal-img" src="" alt="">
+      <div class="drink-window" style="margin-bottom:1.5rem">
+        <div class="drink-window-label">Drickningsfönster</div>
+        <div class="drink-window-dates" id="modalWindow">—</div>
+        <div class="drink-window-status" id="modalStatus">—</div>
+      </div>
+      <div class="result-details">
+        <div class="detail-item"><label>Druvsort</label><span id="modalGrape">—</span></div>
+        <div class="detail-item"><label>Årgång</label><span id="modalVintage">—</span></div>
+        <div class="detail-item"><label>Region</label><span id="modalRegion">—</span></div>
+        <div class="detail-item"><label>Alkohol</label><span id="modalAlcohol">—</span></div>
+        <div class="detail-item"><label>Lagringspotential</label><span id="modalAging">—</span></div>
+        <div class="detail-item"><label>Tillagd</label><span id="modalAdded">—</span></div>
+      </div>
+      <div class="tasting-notes" id="modalTasting">—</div>
+      <div style="margin-top:1rem">
+        <div class="timeline-bar" id="modalTimeline"><div class="timeline-fill" id="modalTimelineFill"></div><div class="timeline-marker" id="modalTimelineMarker"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.8rem;color:var(--muted);margin-top:0.3rem"><span id="modalFrom">—</span><span id="modalTo">—</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const FREE_USES = 3;
+  let currentResult = null;
+  let currentImageData = null;
+  let cellar = JSON.parse(localStorage.getItem('vinkallare') || '[]');
+  let currentFilter = 'all';
+  let usedCount = parseInt(localStorage.getItem('vk_uses') || '0');
+  let isPremium = localStorage.getItem('vk_premium') === 'true';
+
+  function initFreeBar() {
+    const bar = document.getElementById('freeUsesBar');
+    const dots = document.getElementById('usesDots');
+    if (isPremium) { bar.style.display = 'none'; return; }
+    dots.innerHTML = Array.from({length: FREE_USES}, (_, i) =>
+      `<div class="use-dot${i < usedCount ? ' used' : ''}"></div>`
+    ).join('');
+    if (usedCount >= FREE_USES) {
+      bar.style.background = 'rgba(139,26,46,0.12)';
+      bar.style.borderColor = 'rgba(139,26,46,0.3)';
+    }
+  }
+
+  const SERVER = ''; // Relativ URL — fungerar lokalt och i produktion
+
+  function openPaywall() {
+    document.getElementById('paywallOverlay').classList.add('open');
+  }
+
+  async function selectPlan(plan) {
+    const btn = event.currentTarget.querySelector('.btn-plan');
+    const orig = btn ? btn.textContent : '';
+    if (btn) { btn.textContent = 'Vänta…'; btn.disabled = true; }
+
+    try {
+      const res = await fetch(`${SERVER}/create-checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url; // Skicka till Stripe Checkout
+      } else {
+        alert('Något gick fel: ' + (data.error || 'Okänt fel'));
+        if (btn) { btn.textContent = orig; btn.disabled = false; }
+      }
+    } catch (err) {
+      alert('Kunde inte nå servern. Är server.js igång?\n\nFel: ' + err.message);
+      if (btn) { btn.textContent = orig; btn.disabled = false; }
+    }
+  }
+
+  function startFreeTrial() {
+    // Skickar direkt till årsvis-checkout (mest populär)
+    selectPlan('yearly');
+  }
+
+  function activatePremium(email) {
+    isPremium = true;
+    localStorage.setItem('vk_premium', 'true');
+    if (email) localStorage.setItem('vk_email', email);
+    document.getElementById('paywallOverlay').classList.remove('open');
+    document.getElementById('freeUsesBar').style.display = 'none';
+  }
+
+  // Kontrollera om användaren kommer tillbaka från lyckad Stripe-betalning
+  async function checkStripeReturn() {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    if (!sessionId) return;
+    // Rensa URL:en
+    window.history.replaceState({}, '', window.location.pathname);
+    try {
+      const res = await fetch(`${SERVER}/verify-session?session_id=${sessionId}`);
+      const data = await res.json();
+      if (data.success) {
+        activatePremium(data.email);
+        setTimeout(() => alert('🍷 Välkommen till Vinkällaren Premium!\n\nDin betalning är bekräftad. Njut av obegränsade analyser.'), 300);
+      }
+    } catch (e) { /* tyst fel */ }
+  }
+
+  // Show paywall on load if 0 free uses left and not premium
+  window.addEventListener('DOMContentLoaded', async () => {
+    // Kontrollera premium-status mot servern
+    try {
+      const r = await fetch('/me');
+      const d = await r.json();
+      if (d.premium) { isPremium = true; localStorage.setItem('vk_premium', 'true'); }
+    } catch(e) { /* använd localStorage som fallback */ }
+
+    await checkStripeReturn();
+    initFreeBar();
+    if (!isPremium && usedCount >= FREE_USES) {
+      openPaywall();
+    }
+  });
+
+  function showPage(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(page + 'Page').classList.add('active');
+    event.target.classList.add('active');
+    if (page === 'cellar') renderCellar();
+  }
+
+  let frontImage = null;
+  let backImage  = null;
+
+  function triggerPhoto(side) {
+    document.getElementById(side === 'front' ? 'inputFront' : 'inputBack').click();
+  }
+
+  function handleSlot(input, side) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const data = e.target.result;
+      if (side === 'front') {
+        frontImage = data;
+        currentImageData = data; // spara framsida som huvudbild
+      } else {
+        backImage = data;
+      }
+
+      // Visa förhandsgranskning i slotten
+      const preview = document.getElementById(side === 'front' ? 'previewFront' : 'previewBack');
+      preview.innerHTML = `<img class="slot-img" src="${data}" alt="${side}">`;
+      const slot = document.getElementById(side === 'front' ? 'slotFront' : 'slotBack');
+      slot.classList.add('has-photo');
+      document.getElementById(side === 'front' ? 'statusFront' : 'statusBack').textContent = '✦ Tillagd';
+
+      // Aktivera analysknappen när minst framsidan finns
+      if (frontImage) {
+        const btn = document.getElementById('analyzeBtn');
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        document.getElementById('resetBtn').style.display = 'inline-block';
+      }
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  function resetPhotos() {
+    frontImage = null;
+    backImage  = null;
+    currentImageData = null;
+    currentResult = null;
+
+    ['Front','Back'].forEach(s => {
+      document.getElementById(`preview${s}`).innerHTML = `
+        <div class="slot-placeholder">
+          <span class="slot-icon">📷</span>
+          <span class="slot-label">${s === 'Front' ? 'Framsida' : 'Baksida'}</span>
+          <span class="slot-hint">${s === 'Front' ? 'Etikett & producent' : 'Valfri men rekommenderas'}</span>
+        </div>`;
+      document.getElementById(`slot${s}`).classList.remove('has-photo');
+      document.getElementById(`status${s}`).textContent = 'Ej tillagd';
+    });
+
+    const btn = document.getElementById('analyzeBtn');
+    btn.disabled = true;
+    btn.style.opacity = '0.4';
+    document.getElementById('resetBtn').style.display = 'none';
+    document.getElementById('resultCard').style.display = 'none';
+    document.getElementById('errorMsg').style.display = 'none';
+  }
+
+  async function startAnalysis() {
+    if (!frontImage) return;
+    if (!isPremium && usedCount >= FREE_USES) { openPaywall(); return; }
+    await analyzeWine(frontImage, backImage);
+  }
+
+  async function analyzeWine(frontData, backData) {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('resultCard').style.display = 'none';
+    document.getElementById('errorMsg').style.display = 'none';
+
+    const frontBase64  = frontData.split(',')[1];
+    const frontMedia   = frontData.split(';')[0].split(':')[1];
+    const hasBack      = !!backData;
+    const currentYear  = new Date().getFullYear();
+
+    document.getElementById('loadingText').textContent = hasBack
+      ? 'Analyserar fram- och baksida…'
+      : 'Studerar etiketten och analyserar vinet…';
+
+    const prompt = `Du är en expert på vin och vinlagring. Analysera ${hasBack ? 'bilderna av fram- och baksidan' : 'etikettbilden'} på vinflaskan och svara ENBART med ett JSON-objekt utan markdown eller förklaringar.
+
+JSON-schema:
+{
+  "name": "vinets fullständiga namn inkl. producent",
+  "type": "Rött/Vitt/Rosé/Mousserande/Dessertvin",
+  "grape": "huvuddruvsort(er)",
+  "vintage": "årgång eller Okänd",
+  "region": "region och land",
+  "alcohol": "alkoholhalt eller Okänd",
+  "aging": "lagringspotential i år, t.ex. 5–15 år",
+  "drinkFrom": ${currentYear},
+  "drinkTo": ${currentYear + 10},
+  "peakStart": ${currentYear + 2},
+  "peakEnd": ${currentYear + 7},
+  "priceCategory": "Ekonomi/Mellansegment/Premium/Lyx",
+  "tastingNotes": "2–4 meningar om smak, doft och karaktär på svenska",
+  "drinkAdvice": "en mening om när vinet är som bäst på svenska"
+}
+
+Svara ENBART med JSON.`;
+
+    try {
+      const response = await fetch("/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageBase64: frontBase64,
+          mediaType: frontMedia,
+          backBase64: hasBack ? backData.split(',')[1] : null,
+          backMediaType: hasBack ? backData.split(';')[0].split(':')[1] : null,
+          prompt
+        })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      const wine = data.wine;
+      currentResult = wine;
+      if (!isPremium) {
+        usedCount++;
+        localStorage.setItem('vk_uses', usedCount);
+        initFreeBar();
+      }
+      showResult(wine);
+    } catch (err) {
+      document.getElementById('errorMsg').textContent = 'Kunde inte analysera bilden. Försök med ett tydligare foto av etiketten.';
+      document.getElementById('errorMsg').style.display = 'block';
+    } finally {
+      document.getElementById('loading').style.display = 'none';
+    }
+  }
+
+  function showResult(w) {
+    const yr = new Date().getFullYear();
+    document.getElementById('resName').textContent = w.name;
+    document.getElementById('resType').textContent = w.type;
+    document.getElementById('resGrape').textContent = w.grape;
+    document.getElementById('resVintage').textContent = w.vintage;
+    document.getElementById('resRegion').textContent = w.region;
+    document.getElementById('resAlcohol').textContent = w.alcohol;
+    document.getElementById('resAging').textContent = w.aging;
+    document.getElementById('resPrice').textContent = w.priceCategory;
+    document.getElementById('resDrinkWindow').textContent = `${w.drinkFrom} – ${w.drinkTo}`;
+    document.getElementById('resStatus').textContent = w.drinkAdvice;
+    document.getElementById('resTasting').textContent = w.tastingNotes;
+    document.getElementById('resultCard').style.display = 'block';
+  }
+
+  function saveTocellar() {
+    if (!currentResult) return;
+    const entry = {
+      id: Date.now(),
+      ...currentResult,
+      image: currentImageData,
+      addedDate: new Date().toLocaleDateString('sv-SE')
+    };
+    cellar.unshift(entry);
+    localStorage.setItem('vinkallare', JSON.stringify(cellar));
+    alert(`"${currentResult.name}" har sparats till din källare!`);
+    currentResult = null;
+    currentImageData = null;
+    document.getElementById('preview').style.display = 'none';
+    document.getElementById('resultCard').style.display = 'none';
+  }
+
+  function getStatus(wine) {
+    const yr = new Date().getFullYear();
+    if (yr < wine.drinkFrom) return 'wait';
+    if (yr > wine.drinkTo) return 'late';
+    if (yr >= wine.peakStart && yr <= wine.peakEnd) return 'peak';
+    return 'drink';
+  }
+
+  function getBadge(status) {
+    const map = {
+      wait: ['badge-wait', 'Vänta'],
+      peak: ['badge-peak', 'Toppform ✦'],
+      drink: ['badge-drink', 'Drick nu'],
+      late: ['badge-late', 'Sent ute']
+    };
+    return map[status] || map.drink;
+  }
+
+  function filterCellar(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderCellar();
+  }
+
+  function renderCellar() {
+    const grid = document.getElementById('wineGrid');
+    const empty = document.getElementById('emptyCellar');
+    const yr = new Date().getFullYear();
+
+    const filtered = currentFilter === 'all'
+      ? cellar
+      : cellar.filter(w => getStatus(w) === currentFilter);
+
+    document.getElementById('statTotal').textContent = cellar.length;
+    document.getElementById('statDrinkNow').textContent = cellar.filter(w => getStatus(w) === 'drink').length;
+    document.getElementById('statPeak').textContent = cellar.filter(w => getStatus(w) === 'peak').length;
+
+    if (cellar.length === 0) { empty.style.display = 'block'; grid.innerHTML = ''; return; }
+    empty.style.display = filtered.length === 0 ? 'block' : 'none';
+    if (filtered.length === 0) { grid.innerHTML = ''; return; }
+
+    grid.innerHTML = filtered.map(w => {
+      const status = getStatus(w);
+      const [cls, label] = getBadge(status);
+      const imgHtml = w.image
+        ? `<img class="wine-card-img" src="${w.image}" alt="${w.name}">`
+        : `<div class="wine-card-img-placeholder">🍷</div>`;
+      return `
+        <div class="wine-card" onclick="openModal(${w.id})">
+          <button class="delete-btn" onclick="event.stopPropagation();deleteWine(${w.id})">✕</button>
+          ${imgHtml}
+          <div class="wine-card-body">
+            <div class="wine-card-name">${w.name}</div>
+            <div class="wine-card-region">${w.region} · ${w.vintage}</div>
+            <div class="wine-card-window">Dricks: ${w.drinkFrom}–${w.drinkTo}</div>
+            <span class="badge ${cls}">${label}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function deleteWine(id) {
+    if (!confirm('Ta bort detta vin från källaren?')) return;
+    cellar = cellar.filter(w => w.id !== id);
+    localStorage.setItem('vinkallare', JSON.stringify(cellar));
+    renderCellar();
+  }
+
+  function openModal(id) {
+    const w = cellar.find(x => x.id === id);
+    if (!w) return;
+    const yr = new Date().getFullYear();
+
+    document.getElementById('modalName').textContent = w.name;
+    document.getElementById('modalGrape').textContent = w.grape;
+    document.getElementById('modalVintage').textContent = w.vintage;
+    document.getElementById('modalRegion').textContent = w.region;
+    document.getElementById('modalAlcohol').textContent = w.alcohol;
+    document.getElementById('modalAging').textContent = w.aging;
+    document.getElementById('modalAdded').textContent = w.addedDate;
+    document.getElementById('modalWindow').textContent = `${w.drinkFrom} – ${w.drinkTo}`;
+    document.getElementById('modalStatus').textContent = w.drinkAdvice;
+    document.getElementById('modalTasting').textContent = w.tastingNotes;
+    document.getElementById('modalFrom').textContent = w.drinkFrom;
+    document.getElementById('modalTo').textContent = w.drinkTo;
+
+    const modalImg = document.getElementById('modalImg');
+    if (w.image) { modalImg.src = w.image; modalImg.style.display = 'block'; }
+    else { modalImg.style.display = 'none'; }
+
+    // Timeline
+    const span = w.drinkTo - w.drinkFrom;
+    const elapsed = yr - w.drinkFrom;
+    const pct = Math.max(0, Math.min(100, (elapsed / span) * 100));
+    const peakPct = Math.max(0, Math.min(100, ((w.peakStart - w.drinkFrom) / span) * 100));
+    const peakEndPct = Math.max(0, Math.min(100, ((w.peakEnd - w.drinkFrom) / span) * 100));
+    document.getElementById('modalTimelineFill').style.width = `${peakEndPct}%`;
+    document.getElementById('modalTimelineMarker').style.left = `${pct}%`;
+
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal(e) {
+    if (e.target === document.getElementById('modalOverlay')) closeModalBtn();
+  }
+
+  function closeModalBtn() {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+</script>
+</body>
+</html>
