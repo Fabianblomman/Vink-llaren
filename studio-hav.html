@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="sv">
+<html lang="sv" class="no-js">
 <head>
 <meta charset="UTF-8">
+<script>document.documentElement.classList.replace('no-js','js');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Studio Hav — Hårsalong i Skanör</title>
 <meta name="description" content="Studio Hav är en hårsalong i Skanör med fokus på hantverk, lugn och kustnära känsla.">
@@ -58,12 +59,13 @@
   ::selection{background:var(--sage); color:#fff;}
 
   /* ---------- Scroll reveal ---------- */
-  .reveal{
+  /* Content is visible by default; only hidden pre-animation when JS confirms it can reveal it. */
+  .js .reveal{
     opacity:0;
     transform:translateY(28px);
     transition:opacity .9s var(--ease), transform .9s var(--ease);
   }
-  .reveal.is-visible{
+  .js .reveal.is-visible{
     opacity:1;
     transform:translateY(0);
   }
